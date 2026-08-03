@@ -354,9 +354,9 @@ For every logical block (variable assignment, function definition, individual st
 
 ### Line <N>–<M>: <Short Label>
 
-```bash
-<verbatim code>
-```
+    ```bash
+    <verbatim code>
+    ```
 
 **What it does:** <Plain-English explanation of the operation — inputs, outputs, side effects.>  
 **Interactions:** <Any external service, file path, or binary involved.>  
@@ -429,9 +429,6 @@ provides=('openssl')                   — shadowing critical system package
 
 ## Prompt Template
 
-When invoking this skill, supply the PKGBUILD content in the user message and use the following system prompt structure:
-
-```
 You are a security analyst specializing in Arch Linux packaging.
 
 You have been given a PKGBUILD file to assess. Follow the PKGBUILD Security Assessment skill exactly:
@@ -443,8 +440,5 @@ You have been given a PKGBUILD file to assess. Follow the PKGBUILD Security Asse
 
 Do not summarize or skip sections. If a section has nothing to report, write "Nothing to report."
 
-PKGBUILD content:
----
-<paste PKGBUILD here>
----
-```
+PKGBUILD content: 
+
