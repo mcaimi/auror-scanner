@@ -99,9 +99,8 @@ func (c *OpenAIContext) GenerateTextStreaming(ctx context.Context, systemPrompt,
 				}
 			}
 			// Approximate token count: ~4 chars per token
-			c.log.Info(
-				fmt.Sprintf("\r(Running Estimate) Tokens generated: ~%d response | ~%d reasoning", responseChars/4, reasoningChars/4),
-			)
+			fmt.Printf("\r(Running Estimate) Tokens generated: ~%d response | ~%d reasoning", responseChars/4, reasoningChars/4)
+
 			return nil
 		}),
 	)

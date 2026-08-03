@@ -33,8 +33,10 @@ func AurorAnalyticsFlow(c *backend.OpenAIContext, cfg *config.Config) (*core.Flo
 	// the model receives the full assessment procedure without the meta-instructions
 	// meant for the caller.
 	systemPrompt := skillContent
+	userPrompt := "Analyze this PKGBUILD:"
 	if idx := strings.Index(skillContent, "## Prompt Template"); idx != -1 {
 		systemPrompt = strings.TrimSpace(skillContent[:idx])
+		userPrompt = strings.TrimSpace(skillContent[idx:])
 	}
 
 	// define flow in genkit. No streaming, the agent produces a report
@@ -47,7 +49,8 @@ func AurorAnalyticsFlow(c *backend.OpenAIContext, cfg *config.Config) (*core.Flo
 				return AurorAnalysisResult{}, fmt.Errorf("loading PKGBUILD: %w", err)
 			}
 
-			userPrompt := fmt.Sprintf("Analyze this PKGBUILD:\n---\n%s\n---", pkgbuildContent)
+			// inject prompt template
+			userPrompt = fmt.Sprintf("%s\n---\n%s\n---", userPrompt, pkgbuildContent)
 			result, err := c.GenerateTextStreaming(ctx, systemPrompt, userPrompt)
 			if err != nil {
 				return AurorAnalysisResult{}, fmt.Errorf("generating analysis: %w", err)
