@@ -15,7 +15,6 @@ middleware:
     initialdelay: 10
     maxdelay: 60
 
-
 skills:
   skillspath: skill
 

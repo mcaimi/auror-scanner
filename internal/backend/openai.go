@@ -119,13 +119,16 @@ func (c *OpenAIContext) GenerateTextStreaming(ctx context.Context, userPrompt st
 				if part.IsReasoning() {
 					reasoningChars += len(part.Text)
 				} else {
+					// print to stdout
+					fmt.Printf("%s", part.Text)
+
+					// update buffer that will be written to report on disk
 					buf.WriteString(part.Text)
+
+					// count response chars
 					responseChars += len(part.Text)
 				}
 			}
-
-			// Approximate token count: ~4 chars per token
-			fmt.Printf("\r(Running Estimate) Tokens generated: ~%d response | ~%d reasoning", responseChars/4, reasoningChars/4)
 
 			return nil
 		}),
