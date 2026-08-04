@@ -16,13 +16,11 @@ build: install-deps
 	$(GO) build $(GOFLAGS) $(LDFLAGS) -o build/$(BINARY_NAME) cmd/auror/main.go
 
 clean:
-	rm -f build/$(BINARY_NAME)
-	rmdir build
+	rm -Rf build
 
 clean-all: clean
 	# Complete cleanup
-	rm -f build/$(BINARY_NAME)
-	rmdir build
+	rm -Rf build
 	rm -Rf reports
 
 run: build
