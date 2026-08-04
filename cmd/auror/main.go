@@ -23,10 +23,15 @@ var (
 )
 
 func init() {
+	logrus.SetReportCaller(true)
 	log = logrus.New()
+
 	log.SetFormatter(&logrus.TextFormatter{
 		FullTimestamp: true,
 	})
+
+	log.SetOutput(os.Stderr)
+
 	log.SetLevel(logrus.InfoLevel)
 }
 
