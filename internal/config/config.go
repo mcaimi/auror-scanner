@@ -3,9 +3,10 @@ package config
 import "github.com/spf13/viper"
 
 type Config struct {
-	Backend BackendConfig
-	Skills  SkillsConfig
-	Output  OutputConfig
+	Backend    BackendConfig
+	Skills     SkillsConfig
+	Output     OutputConfig
+	Middleware MiddlewareConfig
 }
 
 type OutputConfig struct {
@@ -23,9 +24,19 @@ type BackendConfig struct {
 }
 
 type SkillsConfig struct {
-	SkillsPath   string
-	SkillFile    string
-	SystemPrompt string
+	SkillsPath string
+	SkillFile  string
+}
+
+type MiddlewareConfig struct {
+	Retry RetryConfig
+}
+
+type RetryConfig struct {
+	MaxRetries   int
+	Backoff      float64
+	InitialDelay int
+	MaxDelay     int
 }
 
 func Load(configPath string) (*Config, error) {
@@ -59,4 +70,3 @@ func Load(configPath string) (*Config, error) {
 
 	return cfg, nil
 }
-

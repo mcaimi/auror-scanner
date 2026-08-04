@@ -11,6 +11,7 @@ import (
 	"github.com/firebase/genkit/go/ai"
 	"github.com/firebase/genkit/go/genkit"
 	"github.com/firebase/genkit/go/plugins/compat_oai"
+	"github.com/firebase/genkit/go/plugins/middleware"
 	"github.com/openai/openai-go"
 	"github.com/sirupsen/logrus"
 )
@@ -18,47 +19,52 @@ import (
 type OpenAIContext struct {
 	log    *logrus.Logger
 	gkit   *genkit.Genkit
+	gcfg   *config.Config
 	gparms *openai.ChatCompletionNewParams
 }
 
-func (c *OpenAIContext) SetCompletionParams(cfg config.BackendConfig) {
+func (c *OpenAIContext) SetCompletionParams() {
 	c.gparms = &openai.ChatCompletionNewParams{
-		Temperature:         openai.Float(cfg.Temperature),
-		MaxCompletionTokens: openai.Int(cfg.MaxTokens),
-		Model:               cfg.Model,
-		StreamOptions:       openai.ChatCompletionStreamOptionsParam{IncludeUsage: openai.Bool(cfg.UsageTracking)},
+		Temperature:         openai.Float(c.gcfg.Backend.Temperature),
+		MaxCompletionTokens: openai.Int(c.gcfg.Backend.MaxTokens),
+		Model:               c.gcfg.Backend.Model,
+		StreamOptions:       openai.ChatCompletionStreamOptionsParam{IncludeUsage: openai.Bool(c.gcfg.Backend.UsageTracking)},
 	}
 	c.log.Info(
 		fmt.Sprintf(
 			"MaxTokens %d, Temperature: %f, Model: %s",
-			cfg.MaxTokens,
-			cfg.Temperature,
-			cfg.Model,
+			c.gcfg.Backend.MaxTokens,
+			c.gcfg.Backend.Temperature,
+			c.gcfg.Backend.Model,
 		),
 	)
 }
 
 func (c *OpenAIContext) GetOpenAIAdapter(
 	ctx context.Context,
-	cfg config.BackendConfig,
+	cfg *config.Config,
 	log *logrus.Logger,
 ) error {
 	c.log = log
+	c.gcfg = cfg
 
 	c.log.Info("Initializing OpenAI-Compatible Backend")
 	c.gkit = genkit.Init(
 		ctx,
-		genkit.WithPlugins(&compat_oai.OpenAICompatible{
-			Provider: cfg.Provider,
-			APIKey:   cfg.APIKey,
-			BaseURL:  cfg.BaseURL,
-		}),
+		genkit.WithPlugins(
+			&compat_oai.OpenAICompatible{
+				Provider: c.gcfg.Backend.Provider,
+				APIKey:   c.gcfg.Backend.APIKey,
+				BaseURL:  c.gcfg.Backend.BaseURL,
+			},
+			&middleware.Middleware{},
+		),
 	)
 	if c.gkit == nil {
 		return fmt.Errorf("genkit init returned nil")
 	}
 
-	c.log.Info("BaseURL: ", cfg.BaseURL)
+	c.log.Info("BaseURL: ", c.gcfg.Backend.BaseURL)
 	return nil
 }
 
@@ -89,6 +95,13 @@ func (c *OpenAIContext) GenerateTextStreaming(ctx context.Context, systemPrompt,
 		ai.WithSystem(systemPrompt),
 		ai.WithPrompt(userPrompt),
 		ai.WithTools(tools.RegisterShellTool(c.gkit)),
+		ai.WithUse(&middleware.Retry{
+			MaxRetries:     c.gcfg.Middleware.Retry.MaxRetries,
+			InitialDelayMs: c.gcfg.Middleware.Retry.InitialDelay,
+			MaxDelayMs:     c.gcfg.Middleware.Retry.MaxDelay,
+			BackoffFactor:  c.gcfg.Middleware.Retry.Backoff,
+		},
+		),
 		ai.WithStreaming(func(ctx context.Context, chunk *ai.ModelResponseChunk) error {
 			for _, part := range chunk.Content {
 				if part.IsReasoning() {

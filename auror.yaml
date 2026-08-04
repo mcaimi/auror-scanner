@@ -7,10 +7,17 @@ backend:
   maxtokens: 32768
   usagetracking: true
 
+middleware:
+  retry:
+    maxretries: 3
+    backoff: 2.0
+    initialdelay: 10
+    maxdelay: 60
+
+
 skills:
   skillspath: skill
   skillfile: pkgbuild-security-assessment.md
-  systemprompt: ""
 
 output:
   reports: reports

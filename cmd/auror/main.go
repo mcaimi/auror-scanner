@@ -58,11 +58,11 @@ func run(c *cobra.Command, args []string) {
 
 	// create openai adapter
 	backendAdapter := backend.OpenAIContext{}
-	if err := backendAdapter.GetOpenAIAdapter(ctx, cfg.Backend, log); err != nil {
+	if err := backendAdapter.GetOpenAIAdapter(ctx, cfg, log); err != nil {
 		log.Fatalf("Failed to initialize backend: %v", err)
 	}
 
-	backendAdapter.SetCompletionParams(cfg.Backend)
+	backendAdapter.SetCompletionParams()
 
 	flow, err := flows.AurorAnalyticsFlow(&backendAdapter, cfg)
 	if err != nil {
