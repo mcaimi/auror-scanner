@@ -5,9 +5,9 @@ import "github.com/spf13/viper"
 func setDefaults(v *viper.Viper) {
 	// backend section
 	v.SetDefault("backend.provider", "llama.cpp")
-	v.SetDefault("backend.baseurl", "http://lodalhost:11434/v1")
-	v.SetDefault("backend.model", "ollama/llama3:1b")
-	v.SetDefault("backend.apikey", "ollama/llama3:1b")
+	v.SetDefault("backend.baseurl", "http://localhost:8080/v1")
+	v.SetDefault("backend.model", "unsloth/qwen3.5-9B-gguf:Q4_K_M")
+	v.SetDefault("backend.apikey", "")
 	v.SetDefault("backend.temperature", 0.7)
 	v.SetDefault("backend.maxtokens", 2048)
 	v.SetDefault("backend.usagetracking", true)
