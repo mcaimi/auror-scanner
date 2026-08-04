@@ -6,6 +6,7 @@ backend:
   temperature: 0.7
   maxtokens: 32768
   usagetracking: true
+  maxturns: 10
 
 middleware:
   retry:

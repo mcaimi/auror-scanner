@@ -22,6 +22,7 @@ type BackendConfig struct {
 	Temperature   float64
 	MaxTokens     int64
 	UsageTracking bool
+	MaxTurns      int
 }
 
 type SkillsConfig struct {

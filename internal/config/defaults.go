@@ -11,6 +11,7 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("backend.temperature", 0.7)
 	v.SetDefault("backend.maxtokens", 2048)
 	v.SetDefault("backend.usagetracking", true)
+	v.SetDefault("backend.maxturns", 10)
 
 	// middleware section
 	v.SetDefault("middleware.retry.maxretries", 3)

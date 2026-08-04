@@ -94,6 +94,7 @@ func (c *OpenAIContext) GenerateTextStreaming(ctx context.Context, userPrompt st
 		ai.WithConfig(c.gparms),
 		ai.WithPrompt(userPrompt),
 		ai.WithTools(tools.RegisterShellTool(c.gkit)),
+		ai.WithMaxTurns(c.gcfg.Backend.MaxTurns),
 		ai.WithUse(
 			&middleware.Retry{
 				MaxRetries:     c.gcfg.Middleware.Retry.MaxRetries,
@@ -106,6 +107,15 @@ func (c *OpenAIContext) GenerateTextStreaming(ctx context.Context, userPrompt st
 			}),
 		ai.WithStreaming(func(ctx context.Context, chunk *ai.ModelResponseChunk) error {
 			for _, part := range chunk.Content {
+				// is a tool request?
+				if part.IsToolRequest() {
+					c.log.Info(fmt.Sprintf("(Tool Backend) Requested Tool Execution %s", part.ToolRequest.Name))
+				}
+				if part.IsToolResponse() {
+					c.log.Info(fmt.Sprintf("(Tool Backend) Tool Response Received %s", part.ToolResponse.Name))
+				}
+
+				// manage reasoning tokens
 				if part.IsReasoning() {
 					reasoningChars += len(part.Text)
 				} else {
@@ -151,6 +161,7 @@ func (c *OpenAIContext) GenerateText(ctx context.Context, systemPrompt, userProm
 		ai.WithConfig(c.gparms),
 		ai.WithSystem(systemPrompt),
 		ai.WithPrompt(userPrompt),
+		ai.WithMaxTurns(c.gcfg.Backend.MaxTurns),
 		ai.WithUse(
 			&middleware.Retry{
 				MaxRetries:     c.gcfg.Middleware.Retry.MaxRetries,
