@@ -108,7 +108,7 @@ func (c *OpenAIContext) GenerateTextStreaming(ctx context.Context, userPrompt st
 		ai.WithStreaming(func(ctx context.Context, chunk *ai.ModelResponseChunk) error {
 			for _, part := range chunk.Content {
 				// is a tool request?
-				if part.IsToolRequest() {
+				if part.IsToolRequest() && part.ToolRequest.Name != "" {
 					c.log.Info(fmt.Sprintf("(Tool Backend) Requested Tool Execution %s", part.ToolRequest.Name))
 				}
 				if part.IsToolResponse() {
@@ -123,6 +123,7 @@ func (c *OpenAIContext) GenerateTextStreaming(ctx context.Context, userPrompt st
 					responseChars += len(part.Text)
 				}
 			}
+
 			// Approximate token count: ~4 chars per token
 			fmt.Printf("\r(Running Estimate) Tokens generated: ~%d response | ~%d reasoning", responseChars/4, reasoningChars/4)
 
@@ -161,6 +162,8 @@ func (c *OpenAIContext) GenerateText(ctx context.Context, systemPrompt, userProm
 		ai.WithConfig(c.gparms),
 		ai.WithSystem(systemPrompt),
 		ai.WithPrompt(userPrompt),
+		ai.WithMaxTurns(c.gcfg.Backend.MaxTurns),
+		ai.WithTools(tools.RegisterShellTool(c.gkit)),
 		ai.WithMaxTurns(c.gcfg.Backend.MaxTurns),
 		ai.WithUse(
 			&middleware.Retry{
