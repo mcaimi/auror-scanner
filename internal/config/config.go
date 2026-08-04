@@ -5,6 +5,7 @@ import "github.com/spf13/viper"
 type Config struct {
 	Backend    BackendConfig
 	Skills     SkillsConfig
+	Prompt     PromptConfig
 	Output     OutputConfig
 	Middleware MiddlewareConfig
 }
@@ -25,7 +26,11 @@ type BackendConfig struct {
 
 type SkillsConfig struct {
 	SkillsPath string
-	SkillFile  string
+}
+
+type PromptConfig struct {
+	PromptPath string
+	PromptFile string
 }
 
 type MiddlewareConfig struct {

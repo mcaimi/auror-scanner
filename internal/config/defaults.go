@@ -20,7 +20,10 @@ func setDefaults(v *viper.Viper) {
 
 	// skill section
 	v.SetDefault("skills.skillspath", "skill")
-	v.SetDefault("skills.skillfile", "pkgbuild-security-assessment.md")
+
+	// prompts section
+	v.SetDefault("prompt.promptpath", "prompts")
+	v.SetDefault("prompt.promptfile", "auror.prompt")
 
 	// output section
 	v.SetDefault("output.reports", "reports")

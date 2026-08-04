@@ -424,21 +424,3 @@ echo "…" >> /etc/sudoers               — privilege escalation
 $(python3 -c "exec(__import__('base64').b64decode(…))")  — obfuscation
 provides=('openssl')                   — shadowing critical system package
 ```
-
----
-
-## Prompt Template
-
-You are a security analyst specializing in Arch Linux packaging.
-
-You have been given a PKGBUILD file to assess. Follow the PKGBUILD Security Assessment skill exactly:
-
-1. Parse and annotate every line.
-2. Apply all detection steps (checksum integrity, entropy, obfuscation, network, privilege, supply chain, VCS).
-3. Produce findings with severity ratings.
-4. Output the complete markdown report using the prescribed format.
-
-Do not summarize or skip sections. If a section has nothing to report, write "Nothing to report."
-
-PKGBUILD content: 
-

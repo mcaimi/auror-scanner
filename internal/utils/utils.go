@@ -77,11 +77,11 @@ func FetchPKGBUILD(source string) (string, error) {
 }
 
 // directly load a skill-file in markdown format from the filesystem
-func LoadSkillFile(cfg *config.SkillsConfig) (string, error) {
-	path := filepath.Join(cfg.SkillsPath, cfg.SkillFile)
+func LoadPromptFile(cfg *config.PromptConfig) (string, error) {
+	path := filepath.Join(cfg.PromptPath, cfg.PromptFile)
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return "", fmt.Errorf("reading skill file %q: %w", path, err)
+		return "", fmt.Errorf("reading prompt file %q: %w", path, err)
 	}
 	return string(data), nil
 }

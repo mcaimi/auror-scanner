@@ -74,7 +74,7 @@ func (c *OpenAIContext) Gkit() *genkit.Genkit {
 
 // GenerateTextStreaming streams the response and prints a running token count
 // estimate to stdout, returning the full generated text when done.
-func (c *OpenAIContext) GenerateTextStreaming(ctx context.Context, systemPrompt, userPrompt string) (string, error) {
+func (c *OpenAIContext) GenerateTextStreaming(ctx context.Context, userPrompt string) (string, error) {
 	if c.gparms == nil {
 		return "", fmt.Errorf("completion params not set: call SetCompletionParams before GenerateTextStreaming")
 	}
@@ -92,16 +92,18 @@ func (c *OpenAIContext) GenerateTextStreaming(ctx context.Context, systemPrompt,
 		c.gkit,
 		ai.WithModelName(c.gparms.Model),
 		ai.WithConfig(c.gparms),
-		ai.WithSystem(systemPrompt),
 		ai.WithPrompt(userPrompt),
 		ai.WithTools(tools.RegisterShellTool(c.gkit)),
-		ai.WithUse(&middleware.Retry{
-			MaxRetries:     c.gcfg.Middleware.Retry.MaxRetries,
-			InitialDelayMs: c.gcfg.Middleware.Retry.InitialDelay,
-			MaxDelayMs:     c.gcfg.Middleware.Retry.MaxDelay,
-			BackoffFactor:  c.gcfg.Middleware.Retry.Backoff,
-		},
-		),
+		ai.WithUse(
+			&middleware.Retry{
+				MaxRetries:     c.gcfg.Middleware.Retry.MaxRetries,
+				InitialDelayMs: c.gcfg.Middleware.Retry.InitialDelay,
+				MaxDelayMs:     c.gcfg.Middleware.Retry.MaxDelay,
+				BackoffFactor:  c.gcfg.Middleware.Retry.Backoff,
+			},
+			&middleware.Skills{
+				SkillPaths: []string{c.gcfg.Skills.SkillsPath},
+			}),
 		ai.WithStreaming(func(ctx context.Context, chunk *ai.ModelResponseChunk) error {
 			for _, part := range chunk.Content {
 				if part.IsReasoning() {
@@ -149,5 +151,15 @@ func (c *OpenAIContext) GenerateText(ctx context.Context, systemPrompt, userProm
 		ai.WithConfig(c.gparms),
 		ai.WithSystem(systemPrompt),
 		ai.WithPrompt(userPrompt),
+		ai.WithUse(
+			&middleware.Retry{
+				MaxRetries:     c.gcfg.Middleware.Retry.MaxRetries,
+				InitialDelayMs: c.gcfg.Middleware.Retry.InitialDelay,
+				MaxDelayMs:     c.gcfg.Middleware.Retry.MaxDelay,
+				BackoffFactor:  c.gcfg.Middleware.Retry.Backoff,
+			},
+			&middleware.Skills{
+				SkillPaths: []string{c.gcfg.Skills.SkillsPath},
+			}),
 	)
 }
