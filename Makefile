@@ -12,17 +12,17 @@ install-deps:
 	$(GO) mod verify
 
 build: install-deps
-	$(GO) build $(GOFLAGS) $(LDFLAGS) -o $(BINARY_NAME) cmd/auror/main.go
-
-build-full: install-deps build-ui
-	$(GO) build $(GOFLAGS) $(LDFLAGS) -o $(BINARY_NAME) cmd/auror/main.go
+	mkdir -p build
+	$(GO) build $(GOFLAGS) $(LDFLAGS) -o build/$(BINARY_NAME) cmd/auror/main.go
 
 clean:
-	rm -f $(BINARY_NAME)
+	rm -f build/$(BINARY_NAME)
+	rmdir build
 
 clean-all: clean
 	# Complete cleanup
-	rm -f $(BINARY_NAME)
+	rm -f build/$(BINARY_NAME)
+	rmdir build
 	rm -Rf reports
 
 run: build
