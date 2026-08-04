@@ -151,6 +151,30 @@ llama serve --host 0.0.0.0 --port 11434 -hf unsloth/qwen3.5-9B-gguf:Q4_K_M --con
 
 The endpoint is OpenAI compatible, so it works out of the box.
 
+## Build the Container Image
+
+Auror can run in a container image, with the provided Containerfile.
+
+1- Set up the configuration file (`auror.yaml`)
+
+2- Build the image
+
+```bash
+podman build -t auror:dev .
+```
+
+3- Run the container
+
+```bash
+podman run --rm --name auror -it auror:dev -p <PKGBUILD PATH/URL>
+```
+
+Using a custom `auror.yaml` is the preferred way of building and running the image but settings can also be overridden via ENV variables (look into `internal/config/default.go`):
+
+```bash
+podman run --rm --name auror -it -e AUROR_BACKEND.MODEL="MODEL NAME" -e AUROR_BACKEND.BASEURL="http://baseurl/v1" auror:dev -p <PKGBUILD URL/PATH>
+```
+
 ## LICENSE
 
 This software is licensed under the GPL v3. (see LICENSE file)
