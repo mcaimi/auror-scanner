@@ -1,11 +1,12 @@
-.PHONY: all build clean run install-deps
+.PHONY: all build build-tui clean run install-deps
 
 BINARY_NAME=auror
+BINARY_TUI=auror-tui
 GO=go
 GOFLAGS=-v
 LDFLAGS=-ldflags "-s -w"
 
-all: build
+all: build build-tui
 
 install-deps:
 	$(GO) mod download
@@ -14,6 +15,10 @@ install-deps:
 build: install-deps
 	mkdir -p build
 	$(GO) build $(GOFLAGS) $(LDFLAGS) -o build/$(BINARY_NAME) cmd/auror/main.go
+
+build-tui: install-deps
+	mkdir -p build
+	$(GO) build $(GOFLAGS) $(LDFLAGS) -o build/$(BINARY_TUI) cmd/auror-tui/main.go
 
 clean:
 	rm -Rf build
