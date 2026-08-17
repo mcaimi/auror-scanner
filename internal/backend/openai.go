@@ -93,7 +93,10 @@ func (c *OpenAIContext) GenerateTextStreaming(ctx context.Context, userPrompt st
 		ai.WithModelName(c.gparms.Model),
 		ai.WithConfig(c.gparms),
 		ai.WithPrompt(userPrompt),
-		ai.WithTools(tools.RegisterShellTool(c.gkit)),
+		ai.WithTools(
+			tools.RegisterShellTool(c.gkit),
+			tools.RegisterSkillFileTool(c.gkit, c.gcfg.Middleware.Skills.SkillsPath),
+		),
 		ai.WithMaxTurns(c.gcfg.Backend.MaxTurns),
 		ai.WithUse(
 			&middleware.Retry{
@@ -103,8 +106,13 @@ func (c *OpenAIContext) GenerateTextStreaming(ctx context.Context, userPrompt st
 				BackoffFactor:  c.gcfg.Middleware.Retry.Backoff,
 			},
 			&middleware.Skills{
-				SkillPaths: []string{c.gcfg.Skills.SkillsPath},
-			}),
+				SkillPaths: []string{c.gcfg.Middleware.Skills.SkillsPath},
+			},
+			&middleware.Filesystem{
+				RootDir:          c.gcfg.Middleware.Filesystem.RootDir,
+				AllowWriteAccess: c.gcfg.Middleware.Filesystem.AllowEdit,
+			},
+		),
 		ai.WithStreaming(func(ctx context.Context, chunk *ai.ModelResponseChunk) error {
 			for _, part := range chunk.Content {
 				// is a tool request?
@@ -166,7 +174,10 @@ func (c *OpenAIContext) GenerateText(ctx context.Context, systemPrompt, userProm
 		ai.WithSystem(systemPrompt),
 		ai.WithPrompt(userPrompt),
 		ai.WithMaxTurns(c.gcfg.Backend.MaxTurns),
-		ai.WithTools(tools.RegisterShellTool(c.gkit)),
+		ai.WithTools(
+			tools.RegisterShellTool(c.gkit),
+			tools.RegisterSkillFileTool(c.gkit, c.gcfg.Middleware.Skills.SkillsPath),
+		),
 		ai.WithMaxTurns(c.gcfg.Backend.MaxTurns),
 		ai.WithUse(
 			&middleware.Retry{
@@ -176,7 +187,8 @@ func (c *OpenAIContext) GenerateText(ctx context.Context, systemPrompt, userProm
 				BackoffFactor:  c.gcfg.Middleware.Retry.Backoff,
 			},
 			&middleware.Skills{
-				SkillPaths: []string{c.gcfg.Skills.SkillsPath},
-			}),
+				SkillPaths: []string{c.gcfg.Middleware.Skills.SkillsPath},
+			},
+		),
 	)
 }
