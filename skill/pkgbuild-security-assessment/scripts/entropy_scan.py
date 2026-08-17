@@ -48,7 +48,7 @@ def severity(h: float) -> str:
 
 
 def is_benign(s: str) -> bool:
-    return bool(CHECKSUM_RE.match(s))
+    return bool(CHECKSUM_RE.match(s) or UUID_RE.match(s))
 
 
 def scan(path: str):
@@ -64,8 +64,6 @@ def scan(path: str):
         arr_start = re.match(r"^\s*([a-zA-Z_][a-zA-Z0-9_]*)=\(", line)
         if arr_start:
             current_array_var = arr_start.group(1)
-        if ")" in line and current_array_var:
-            current_array_var = None  # reset after closing paren on same line
 
         # Extract all quoted string literals (single and double quoted)
         candidates = re.findall(r'"([^"]{20,})"', line)
@@ -81,6 +79,10 @@ def scan(path: str):
                 continue
             sev = severity(h)
             findings.append((lineno, h, sev, cand[:80]))
+
+        # Reset array tracking after processing candidates on the closing line
+        if ")" in line and current_array_var:
+            current_array_var = None
 
     if not findings:
         print("No high-entropy strings found.")

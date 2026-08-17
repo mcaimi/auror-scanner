@@ -44,35 +44,39 @@ package() {
 #!/bin/bash
 # PKGBUILD
 
-pkgname=vcs-app
-pkgver=()
+pkgname=vcs-app-git
+pkgver=0
 pkgrel=1
 arch=('x86_64')
 url="https://github.com/user/vcs-app"
 license=('GPL-3.0-only')
+makedepends=('git')
 
-source=("https://github.com/user/vcs-app.git#tag=v${pkgver}")
-sha256sums=()
+source=("git+https://github.com/user/vcs-app.git")
+sha256sums=('SKIP')
 
 pkgver() {
-    git describe --tags --dirty --always
+    cd "$srcdir/vcs-app"
+    git describe --long --tags --abbrev=7 | sed 's/^v//;s/-/.r/;s/-/\./'
 }
 
 build() {
-    cd "$srcdir"
+    cd "$srcdir/vcs-app"
     make
 }
 
 package() {
-    cd "$srcdir"
+    cd "$srcdir/vcs-app"
     install -Dm755 app "$pkgdir/usr/bin/app"
 }
 ```
 
 **Why it's good:**
-- ✅ Dynamic version from git tags
-- ✅ No checksums needed for VCS (sha256sums=())
+- ✅ Dynamic version from git tags via pkgver()
+- ✅ Uses git+ VCS protocol prefix in source
+- ✅ SKIP is acceptable for VCS sources
 - ✅ Version function only reads from local clone
+- ✅ git listed in makedepends
 
 ### Example 3: Python Package with Meson
 
@@ -86,25 +90,25 @@ pkgrel=1
 arch=('x86_64')
 license=('Apache-2.0')
 depends=('python')
-makedepends=('meson' 'python-setuptools')
+makedepends=('meson' 'python-installer' 'python-build' 'python-setuptools')
 source=("https://pypi.io/packages/source/example/example-${pkgver}.tar.gz")
 sha256sums=('abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890')
 
 build() {
     cd "$srcdir/example-${pkgver}"
-    python -m pip install .
+    python -m build --wheel --no-isolation
 }
 
 package() {
     cd "$srcdir/example-${pkgver}"
-    python -m pip install --prefix="$pkgdir" .
+    python -m installer --destdir="$pkgdir" dist/*.whl
 }
 ```
 
 **Why it's good:**
 - ✅ Proper dependencies declared
-- ✅ Uses standard Python packaging
-- ✅ Installs to $pkgdir with correct prefix
+- ✅ Uses PEP 517 build (python-build + python-installer)
+- ✅ Installs to $pkgdir via --destdir
 
 ## Bad Examples
 

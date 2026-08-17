@@ -266,7 +266,7 @@ post_upgrade() {
 ## Environment Variables
 
 ### $srcdir
-Source directory (where PKGBUILD is located).
+Source directory (where downloaded sources are extracted).
 
 ### $builddir
 Build directory (created during build).
