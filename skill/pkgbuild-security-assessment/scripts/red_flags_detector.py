@@ -73,13 +73,13 @@ ATTACK_PATTERNS = [
     },
     {
         "name": "HTTP source (no TLS)",
-        "pattern": r"source\s*=\s*\([^)]*http://[^)]*\)",
+        "pattern": r"""(?:source\s*=\s*\([^)]*http://|['"]http://[^'"]*['"])""",
         "severity": "MEDIUM",
         "description": "Using unencrypted HTTP for sources",
     },
     {
         "name": "Checksum bypass",
-        "pattern": r"sha256sums\s*=\s*\(\s*\'SKIP\'\s*",
+        "pattern": r"(?:sha256sums|sha512sums|b2sums|md5sums|sha1sums)\s*=\s*\([^)]*'SKIP'",
         "severity": "HIGH",
         "description": "Integrity check bypassed",
     },

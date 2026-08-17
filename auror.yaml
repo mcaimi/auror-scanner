@@ -14,9 +14,11 @@ middleware:
     backoff: 2.0
     initialdelay: 10
     maxdelay: 60
-
-skills:
-  skillspath: skill
+  skills:
+    skillspath: skill
+  filesystem:
+    rootdir: /tmp
+    allowedit: true
 
 prompt:
   promptpath: prompts

@@ -9,77 +9,65 @@ import re
 import sys
 from pathlib import Path
 
+CHECKSUM_VARS = {"sha256sums", "sha512sums", "b2sums", "md5sums", "sha1sums"}
+WEAK_ALGORITHMS = {"md5sums", "sha1sums"}
+
 
 def parse_pkgbuild(path: str):
     """Parse PKGBUILD and extract source and checksum arrays."""
     src = Path(path).read_text(errors="replace")
     lines = src.splitlines()
 
-    sources = []
-    checksums = []
+    arrays = {}
     current_array = None
     current_var = None
 
     for line in lines:
-        # Detect array start
         arr_match = re.match(r"^\s*([a-zA-Z_][a-zA-Z0-9_]*)=(\()", line)
         if arr_match:
             current_var = arr_match.group(1)
             current_array = []
 
-        # Detect array end
-        if current_array is not None and ")" in line:
-            # Extract array contents
-            array_content = re.search(r"\((.+)\)", line)
-            if array_content:
-                content = array_content.group(1)
-                # Split by comma, handling quotes
-                items = re.findall(r'"([^"]*)"', content)
-                items += re.findall(r"'([^']*)'", content)
-                current_array.extend(items)
-
-            if current_var in [
-                "source",
-                "sha256sums",
-                "sha512sums",
-                "b2sums",
-                "md5sums",
-                "sha1sums",
-            ]:
-                if current_var == "source":
-                    sources = current_array
-                else:
-                    checksums = current_array
-
-            current_array = None
-            current_var = None
-
-        # Handle multi-line arrays
-        elif current_array is not None:
-            # Check if line contains array items
+        if current_array is not None:
             items = re.findall(r'"([^"]*)"', line)
             items += re.findall(r"'([^']*)'", line)
             current_array.extend(items)
 
-    return sources, checksums
+            if ")" in line:
+                arrays[current_var] = current_array
+                current_array = None
+                current_var = None
+
+    sources = arrays.get("source", [])
+    checksum_var = None
+    checksums = []
+    for var in CHECKSUM_VARS:
+        if var in arrays:
+            checksum_var = var
+            checksums = arrays[var]
+            break
+
+    return sources, checksums, checksum_var
 
 
-def validate_checksums(sources: list, checksums: list) -> list:
+def validate_checksums(sources: list, checksums: list, checksum_var: str | None) -> list:
     """Validate checksum integrity and return findings."""
     findings = []
 
-    # Check for SKIP entries
-    if "SKIP" in sources:
-        findings.append(
-            {
-                "type": "SKIP_FOUND",
-                "severity": "HIGH",
-                "message": "Found SKIP entry in source array - integrity verification bypassed",
-            }
-        )
+    for i, cs in enumerate(checksums):
+        if cs == "SKIP":
+            findings.append(
+                {
+                    "type": "SKIP_FOUND",
+                    "severity": "HIGH",
+                    "message": f"SKIP entry at index {i} in {checksum_var or 'checksums'} — integrity verification bypassed",
+                }
+            )
 
-    # Check for mismatched counts
-    if len(sources) != len(checksums):
+    vcs_patterns = ["git+", "svn+", "hg+", "bzr+"]
+    non_vcs_sources = [s for s in sources if not any(p in s for p in vcs_patterns)]
+
+    if non_vcs_sources and len(sources) != len(checksums):
         findings.append(
             {
                 "type": "MISMATCH",
@@ -88,33 +76,21 @@ def validate_checksums(sources: list, checksums: list) -> list:
             }
         )
 
-    # Check for weak checksums
-    weak_checksums = ["md5sums", "sha1sums"]
-    for weak in weak_checksums:
-        if weak in checksums:
-            findings.append(
-                {
-                    "type": "WEAK_CHECKSUM",
-                    "severity": "MEDIUM",
-                    "message": f"Found {weak} - consider using stronger algorithm (sha256sums or sha512sums)",
-                }
-            )
+    if checksum_var in WEAK_ALGORITHMS:
+        findings.append(
+            {
+                "type": "WEAK_CHECKSUM",
+                "severity": "MEDIUM",
+                "message": f"Using {checksum_var} — consider a stronger algorithm (sha256sums or sha512sums)",
+            }
+        )
 
-    # Check for missing checksums on non-VCS sources
-    vcs_patterns = ["git+", "svn+", "hg+", "bzr+"]
-    non_vcs_sources = []
-    for src in sources:
-        is_vcs = any(pattern in src for pattern in vcs_patterns)
-        if not is_vcs and "http" not in src and "https" not in src:
-            non_vcs_sources.append(src)
-
-    # If we have non-VCS sources, we should have checksums
-    if non_vcs_sources and len(checksums) == 0:
+    if non_vcs_sources and checksum_var is None:
         findings.append(
             {
                 "type": "MISSING_CHECKSUMS",
                 "severity": "HIGH",
-                "message": f"Non-VCS sources found without checksums: {non_vcs_sources}",
+                "message": f"Non-VCS sources found without any checksums: {non_vcs_sources}",
             }
         )
 
@@ -128,8 +104,8 @@ def main():
 
     path = sys.argv[1]
     try:
-        sources, checksums = parse_pkgbuild(path)
-        findings = validate_checksums(sources, checksums)
+        sources, checksums, checksum_var = parse_pkgbuild(path)
+        findings = validate_checksums(sources, checksums, checksum_var)
 
         if not findings:
             print("Checksum validation passed.")
