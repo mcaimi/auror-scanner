@@ -20,7 +20,11 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("middleware.retry.maxdelay", 60)
 
 	// skill section
-	v.SetDefault("skills.skillspath", "skill")
+	v.SetDefault("middleware.skills.skillspath", "skill")
+
+	// filesystem section
+	v.SetDefault("middleware.filesystem.rootdir", "/tmp")
+	v.SetDefault("middleware.filesystem.allowedit", false)
 
 	// prompts section
 	v.SetDefault("prompt.promptpath", "prompts")

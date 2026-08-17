@@ -29,13 +29,20 @@ type SkillsConfig struct {
 	SkillsPath string
 }
 
+type FilesystemConfig struct {
+	RootDir   string
+	AllowEdit bool
+}
+
 type PromptConfig struct {
 	PromptPath string
 	PromptFile string
 }
 
 type MiddlewareConfig struct {
-	Retry RetryConfig
+	Retry      RetryConfig
+	Skills     SkillsConfig
+	Filesystem FilesystemConfig
 }
 
 type RetryConfig struct {
